@@ -33,7 +33,13 @@ class Board:
     def all_runs(self):
         return self.cols() + self.rows() + self.diags()
 
-    # returns None to indicate game isn't over
+    def __getitem__(self, index):
+        return self._grid[index]
+    def __setitem__(self, index, value):
+        self._grid[index] = value
+
+    # returns SQUARE_EMPTY to indicate game isn't over
+    # returns None for tie game
     # returns a Square value to indicate winner if it is over
     def winner(self):
         empty_count = 0
@@ -43,21 +49,25 @@ class Board:
             if (all([r == p for r in run])):
                 return p
         if (self._grid == SQUARE_EMPTY).any():
-            return None
-        else:
+            # game not over yet
             return SQUARE_EMPTY
+        else:
+            # tie game
+            return None
 
     # Returns True if game is complete
     def done(self):
-        return self.winner() != None
+        return self.winner() != SQUARE_EMPTY
 
     def __str__(self):
-        return '\n'.join([' '.join(r) for r in self.rows()])
+        return '\n'.join([' '.join([str(x) for x in r]) for r in self.rows()])
 
 
-class InvalidMove(RuntimeError): pass
+# class InvalidMove(RuntimeError): pass
 
 
+# first player is O, second is X
+# each player is a function that returns an (r, c) tuple
 def run_game(player1, player2):
     brd = Board()
 
@@ -67,26 +77,35 @@ def run_game(player1, player2):
         p = players[count % len(players)]
         count += 1
 
+        # symbol for current player
         s = [SQUARE_O, SQUARE_X][count % len(players)]
 
-        mv = p(grid)
-        brd._grid[mv] = s
+        mv = p(brd)
+
+        if brd[mv] != SQUARE_EMPTY:
+            raise InvalidMove("Square taken: %s" % mv)
+        else:
+            brd[mv] = s
+
         print('\n-----')
-        print(grid)
+        print(brd)
         print('-----\n')
     print('Done!')
 
+def index_to_rc(index):
+    return (int(index / 3), index % 3)
 
-i = 0
-def auto_player(grid):
-    global i
-    v = (i,i)
-    i += 1
-    return v
+def auto_player(brd):
+    # find the first open spot
+    for r in range(3):
+        for c in range(3):
+            if brd[r,c] == SQUARE_EMPTY:
+                return (r,c)
 
 def console_player(grid):
-    res = raw_input('Enter choice (0-8):')
-    return int(res)
+    res = int(input('Enter choice (0-8):'))
+    return index_to_rc(res)
 
 
-run_game(auto_player, console_player)
+if __name__ == '__main__':
+    run_game(auto_player, console_player)
