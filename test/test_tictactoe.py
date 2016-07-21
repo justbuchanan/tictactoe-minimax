@@ -8,4 +8,3 @@ class TestTicTacToe(unittest.TestCase):
         brd = Board()
         self.assertFalse(brd.done())
         self.assertEqual(SQUARE_EMPTY, brd.winner())
-

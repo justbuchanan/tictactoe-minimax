@@ -2,6 +2,7 @@
 
 from enum import Enum
 import numpy as np
+from copy import deepcopy
 
 ## square values
 SQUARE_EMPTY = ' '
@@ -32,6 +33,16 @@ class Board:
 
     def all_runs(self):
         return self.cols() + self.rows() + self.diags()
+
+    def all_positions(self):
+        for r in range(self.size):
+            for c in range(self.size):
+                yield r,c
+
+    def open_positions(self):
+        for pos in self.all_positions():
+            if self[pos] == SQUARE_EMPTY:
+                yield pos
 
     def __getitem__(self, index):
         return self._grid[index]
@@ -81,7 +92,7 @@ def run_game(player1, player2):
         # symbol for current player
         s = symbols[count % len(players)]
 
-        mv = p(brd)
+        mv = p(brd, s)
 
         if brd[mv] != SQUARE_EMPTY:
             raise InvalidMove("Square taken: %s" % mv)
@@ -99,17 +110,59 @@ def run_game(player1, player2):
 def index_to_rc(index):
     return (int(index / 3), index % 3)
 
-def auto_player(brd):
+def auto_player(brd, smbl):
     # find the first open spot
     for r in range(3):
         for c in range(3):
             if brd[r,c] == SQUARE_EMPTY:
                 return (r,c)
 
-def console_player(grid):
+def console_player(brd, smbl):
     res = int(input('Enter choice (0-8):'))
     return index_to_rc(res)
 
+def minimax_player(brd, smbl):
+
+    class Node:
+        def __init__(self):
+            self.children = []
+            self.board = None
+
+        def height(self):
+            if len(self.children) == 0:
+                return 0
+            else:
+                return max([n.height() for n in self.children])
+
+    symbols = []
+
+    def subtree_for_board(brd, cur_player):
+        root = Node()
+        root.board = brd
+
+        if not brd.done():
+            # add subtree for all possible moves
+            next_player = SQUARE_O if cur_player == SQUARE_X else SQUARE_O
+            for pos in root.board.open_positions():
+                sub_board = deepcopy(brd)
+                sub_board[pos] = cur_player
+                root.children.append(subtree_for_board(sub_board, next_player))
+        else:
+            # TODO: stats?
+            pass
+
+        return root
+
+
+    minimax = subtree_for_board(deepcopy(brd), smbl)
+
+    print("minimax height: %d" % minimax.height())
+
+    return (2,2)
+
+
+
+
 
 if __name__ == '__main__':
-    run_game(auto_player, console_player)
+    run_game(minimax_player, console_player)
