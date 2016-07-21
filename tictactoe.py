@@ -77,7 +77,7 @@ class Board:
         return '\n-----\n'.join(['|'.join([str(x) for x in r]) for r in self.rows()])
 
 
-# class InvalidMove(RuntimeError): pass
+class InvalidMove(RuntimeError): pass
 
 
 # first player is O, second is X
@@ -104,9 +104,13 @@ def run_game(player1, player2):
 
         print(brd)
         print()
-    print('Done!')
+
+    # print and return result
     w = brd.winner()
-    print('Winner: %s' % w)
+    if w == None:
+        print('Tie game!')
+    else:
+        print('Winner: %s' % w)
     return w
 
 # convert from linear index (0-8) to a row, column tuple
@@ -121,10 +125,11 @@ def auto_player(brd, smbl):
                 return (r,c)
 
 def console_player(brd, smbl):
-    res = int(input('Enter choice (0-8):'))
+    res = int(input('Your move (0-8):'))
     return index_to_rc(res)
 
 def minimax_player(brd, smbl):
+    print('Thinking...')
 
     other_smbl = SQUARE_X if smbl == SQUARE_O else SQUARE_O
 
@@ -164,7 +169,7 @@ def minimax_player(brd, smbl):
             if root.our_turn:
                 root.value = max([c.value for c in root.children])
             else:
-                root.value = min([c.value for c in root.children])
+                root.value = min([c.value for c in root.children]) * 0.9
 
 
         else:
@@ -183,14 +188,25 @@ def minimax_player(brd, smbl):
     minimax = subtree_for_board(deepcopy(brd), smbl)
 
     # TODO: rm
-    values = [n.value for n in minimax.children]
-    print('values: %s' % values)
+    # values = [n.value for n in minimax.children]
+    # print('values: %s' % values)
 
     # make choice based on minimax tree
     best_choice = max(list(minimax.children), key=lambda n: n.value)
     return best_choice.move
 
 
-
 if __name__ == '__main__':
-    run_game(minimax_player, console_player)
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Tic tac toe!")
+    parser.add_argument(
+        "--mefirst",
+        action='store_true',
+        help=
+        "Request to go first")
+    args = parser.parse_args()
+    if args.mefirst:
+        run_game(console_player, minimax_player)
+    else:
+        run_game(minimax_player, console_player)
