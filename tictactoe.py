@@ -123,10 +123,16 @@ def console_player(brd, smbl):
 
 def minimax_player(brd, smbl):
 
+    other_smbl = SQUARE_X if smbl == SQUARE_O else SQUARE_O
+
     class Node:
         def __init__(self):
             self.children = []
             self.board = None
+            # if True, @children represents the result of each of our possible moves
+            self.our_turn = False
+            self.value = 0
+            self.move = None # The (r, c) position that was last taken
 
         def height(self):
             if len(self.children) == 0:
@@ -139,6 +145,7 @@ def minimax_player(brd, smbl):
     def subtree_for_board(brd, cur_player):
         root = Node()
         root.board = brd
+        root.our_turn = (cur_player == smbl) # TODO: double check
 
         if not brd.done():
             # add subtree for all possible moves
@@ -146,10 +153,26 @@ def minimax_player(brd, smbl):
             for pos in root.board.open_positions():
                 sub_board = deepcopy(brd)
                 sub_board[pos] = cur_player
-                root.children.append(subtree_for_board(sub_board, next_player))
+                child = subtree_for_board(sub_board, next_player)
+                child.move = pos
+                root.children.append(child)
+
+            # update node's value based on child nodes
+            if root.our_turn:
+                root.value = max(root.children, lambda n: n.value)
+            else:
+                root.value = min(root.children, lambda n: n.value)
+
+
         else:
-            # TODO: stats?
-            pass
+            # game complete, set node value based on who won
+            w = brd.winner()
+            if w == smbl:
+                # we won!
+                root.value = 1
+            elif w == other_smbl:
+                # they won :()
+                root.value = -1
 
         return root
 
@@ -158,8 +181,10 @@ def minimax_player(brd, smbl):
 
     print("minimax height: %d" % minimax.height())
 
-    return (2,2)
 
+    # make choice based on minimax tree
+    best_choice = max(minimax.children, lambda n: n.value)
+    return best_choice.move
 
 
 
