@@ -4,14 +4,14 @@ from enum import Enum
 import numpy as np
 
 ## square values
-SQUARE_EMPTY = 0
-SQUARE_O = 1
-SQUARE_X = 2
+SQUARE_EMPTY = ' '
+SQUARE_O = 'O'
+SQUARE_X = 'X'
 
 
 class Board:
     def __init__(self, size=3):
-        self._grid = np.full((size,size), SQUARE_EMPTY, int)
+        self._grid = np.full((size,size), SQUARE_EMPTY, str)
         self._size = size
 
     @property
@@ -60,7 +60,7 @@ class Board:
         return self.winner() != SQUARE_EMPTY
 
     def __str__(self):
-        return '\n'.join([' '.join([str(x) for x in r]) for r in self.rows()])
+        return '\n-----\n'.join(['|'.join([str(x) for x in r]) for r in self.rows()])
 
 
 # class InvalidMove(RuntimeError): pass
@@ -72,13 +72,14 @@ def run_game(player1, player2):
     brd = Board()
 
     players = [player1, player2]
+    symbols = [SQUARE_O, SQUARE_X]
     count = 0
     while not brd.done():
         p = players[count % len(players)]
         count += 1
 
         # symbol for current player
-        s = [SQUARE_O, SQUARE_X][count % len(players)]
+        s = symbols[count % len(players)]
 
         mv = p(brd)
 
@@ -87,11 +88,14 @@ def run_game(player1, player2):
         else:
             brd[mv] = s
 
-        print('\n-----')
         print(brd)
-        print('-----\n')
+        print()
     print('Done!')
+    w = brd.winner()
+    print('Winner: %s' % w)
+    return w
 
+# convert from linear index (0-8) to a row, column tuple
 def index_to_rc(index):
     return (int(index / 3), index % 3)
 
