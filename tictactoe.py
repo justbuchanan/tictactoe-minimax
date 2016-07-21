@@ -11,9 +11,12 @@ SQUARE_X = 'X'
 
 
 class Board:
-    def __init__(self, size=3):
-        self._grid = np.full((size,size), SQUARE_EMPTY, str)
-        self._size = size
+    def __init__(self, grid=np.full((3,3), SQUARE_EMPTY, str)):
+        if grid.shape[0] != grid.shape[1]:
+            raise RuntimeError("Grid must be a square")
+
+        self._grid = deepcopy(grid)
+        self._size = grid.shape[0]
 
     @property
     def size(self):
