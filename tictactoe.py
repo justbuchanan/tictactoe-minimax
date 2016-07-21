@@ -3,6 +3,7 @@
 from enum import Enum
 import numpy as np
 from copy import deepcopy
+import graphviz as gv
 
 ## square values
 SQUARE_EMPTY = ' '
@@ -144,11 +145,33 @@ def minimax_player(brd, smbl):
 
         def height(self):
             if len(self.children) == 0:
-                return 0
+                return 1
             else:
-                return max([n.height() for n in self.children])
+                return 1 + max([n.height() for n in self.children])
 
-    symbols = []
+
+        # writes a png file of the graphviz output to the specified location
+        def write_diagram_png(self, filename):
+            g = self.as_graphviz()
+            g.render(filename=filename, cleanup=True)
+
+        ## @param g The digraph object
+        # @return node name
+        def _as_graphviz(self, g, node_name=''):
+            root = g.node(node_name, label=str(self.board), shape='rect')
+
+            for index, child in enumerate(self.children):
+                child_name = node_name + str(index)
+                child._as_graphviz(g, child_name)
+                g.edge(node_name, child_name, label=str(child.move)) # TODO: label
+
+
+        # returns a graphviz.Digraph object
+        def as_graphviz(self):
+            g = gv.Digraph(self.__class__.__name__, format='png')
+            self._as_graphviz(g, '0')
+            return g
+
 
     def subtree_for_board(brd, cur_player):
         root = Node()
@@ -186,6 +209,12 @@ def minimax_player(brd, smbl):
 
 
     minimax = subtree_for_board(deepcopy(brd), smbl)
+    print('Tree height: %d' % minimax.height())
+    if minimax.height() <= 4:
+        print('writing minimax diagram...')
+        minimax.write_diagram_png('minimax')
+
+
 
     # TODO: rm
     # values = [n.value for n in minimax.children]
