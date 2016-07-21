@@ -159,9 +159,9 @@ def minimax_player(brd, smbl):
 
             # update node's value based on child nodes
             if root.our_turn:
-                root.value = max(root.children, lambda n: n.value)
+                root.value = max([c.value for c in root.children])
             else:
-                root.value = min(root.children, lambda n: n.value)
+                root.value = min([c.value for c in root.children])
 
 
         else:
@@ -179,13 +179,13 @@ def minimax_player(brd, smbl):
 
     minimax = subtree_for_board(deepcopy(brd), smbl)
 
-    print("minimax height: %d" % minimax.height())
-
+    # TODO: rm
+    values = [n.value for n in minimax.children]
+    print('values: %s' % values)
 
     # make choice based on minimax tree
-    best_choice = max(minimax.children, lambda n: n.value)
+    best_choice = max(list(minimax.children), key=lambda n: n.value)
     return best_choice.move
-
 
 
 
