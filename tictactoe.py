@@ -14,8 +14,15 @@ def other_player(sq):
     return SQUARE_O if sq == SQUARE_X else SQUARE_X
 
 
+def empty_square_matrix(size=3):
+    return np.full((size, size), SQUARE_EMPTY, str)
+
+
+## A tictactoe board
+# By default it's a 3x3 grid, but it can be any size square.
+# Positions are specified by (row, column) tuples.
 class Board:
-    def __init__(self, grid=np.full((3, 3), SQUARE_EMPTY, str)):
+    def __init__(self, grid=empty_square_matrix(3)):
         if grid.shape[0] != grid.shape[1]:
             raise RuntimeError("Grid must be a square")
 
@@ -57,9 +64,9 @@ class Board:
     def __setitem__(self, index, value):
         self._grid[index] = value
 
-    # returns SQUARE_EMPTY to indicate game isn't over
+    ## returns SQUARE_EMPTY to indicate game isn't over
     # returns None for tie game
-    # returns a Square value to indicate winner if it is over
+    # returns SQUARE_X or SQUARE_O value to indicate winner if it is over
     def winner(self):
         empty_count = 0
         for run in self.all_runs():
@@ -78,21 +85,28 @@ class Board:
     def done(self):
         return self.winner() != SQUARE_EMPTY
 
+    ## Returns a string of the form:
+    # O| |
+    # -----
+    # X|O|X
+    # -----
+    #  | |
     def __str__(self):
-        return '\n-----\n'.join(['|'.join([str(x) for x in r])
+        row_divider = '\n' + '-' * (self.size * 2 - 1) + '\n'
+        return row_divider.join(['|'.join([str(x) for x in r])
                                  for r in self.rows()])
 
 
+## Exception raised by run_game() when a player requests an invalid move
 class InvalidMove(RuntimeError):
-
     pass
 
 
 ## Run a game a game of tictactoe, given two players
 # first player is O, second is X
 # each player is a function that returns an (r, c) tuple
-def run_game(player1, player2):
-    brd = Board()
+def run_game(player1, player2, board_size=3):
+    brd = Board(empty_square_matrix(board_size))
 
     players = [player1, player2]
     symbols = [SQUARE_O, SQUARE_X]
@@ -150,11 +164,12 @@ if __name__ == '__main__':
     parser.add_argument("--mefirst",
                         action='store_true',
                         help="Request to go first")
+    parser.add_argument("--size", default=3, type=int, help="Size of board")
     args = parser.parse_args()
 
     import minimax
 
     if args.mefirst:
-        run_game(console_player, minimax.player)
+        run_game(console_player, minimax.player, args.size)
     else:
-        run_game(minimax.player, console_player)
+        run_game(minimax.player, console_player, args.size)
