@@ -4,10 +4,6 @@ from tictactoe import *
 
 
 class Node:
-    """
-    Node in minimax tree
-    """
-
     def __init__(self):
         self.children = []
         self.board = None
@@ -68,7 +64,8 @@ def minimax_tree_for_board(brd, player, cur_player):
 
         # add subtree for all possible moves
         next_player = other_player(cur_player)
-        root.children = [create_subtree(pos) for pos in root.board.open_positions()]
+        root.children = [create_subtree(pos)
+                         for pos in root.board.open_positions()]
 
         # update node's value based on child nodes
         if root.our_turn:

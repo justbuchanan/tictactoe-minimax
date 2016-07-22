@@ -6,7 +6,6 @@ import minimax
 
 
 class TestTicTacToe(unittest.TestCase):
-
     def test_done(self):
         brd = Board()
         self.assertFalse(brd.done())

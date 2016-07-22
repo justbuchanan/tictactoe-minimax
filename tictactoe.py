@@ -15,7 +15,6 @@ def other_player(sq):
 
 
 class Board:
-
     def __init__(self, grid=np.full((3, 3), SQUARE_EMPTY, str)):
         if grid.shape[0] != grid.shape[1]:
             raise RuntimeError("Grid must be a square")
