@@ -33,11 +33,6 @@ class Node:
         g = self.as_graphviz()
         g.render(filename=filename, cleanup=True)
 
-    # Get the (r, c) position of the move this board represents
-    def get_move(self):
-        pos, _ = find_move(self.parent.board, self.board)
-        return pos
-
     ## @param g The digraph object
     # @return node name
     def _as_graphviz(self, g, node_name=''):
@@ -50,7 +45,8 @@ class Node:
         for index, child in enumerate(self.children):
             child_name = node_name + str(index)
             child._as_graphviz(g, child_name)
-            g.edge(node_name, child_name, label=str(child.get_move()))
+            move, player = find_move(root.board, child.board)
+            g.edge(node_name, child_name, label='%s: %s' % (player, str(pos)))
 
     # returns a graphviz.Digraph object
     def as_graphviz(self):
@@ -141,4 +137,5 @@ def player(brd, smbl):
 
     # make choice based on minimax tree
     best_choice = max(list(minimax.children), key=lambda n: n.value)
-    return best_choice.get_move()
+    pos, player = find_move(minimax.board, best_choice.board)
+    return pos
