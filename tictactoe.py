@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
 from enum import Enum
-import numpy as np
 from copy import deepcopy
-import graphviz as gv
+import numpy as np
 
 ## square values
 SQUARE_EMPTY = ' '
 SQUARE_O = 'O'
 SQUARE_X = 'X'
+
+def other_player(sq):
+    return SQUARE_O if sq == SQUARE_X else SQUARE_X
 
 
 class Board:
@@ -80,7 +82,7 @@ class Board:
 
 class InvalidMove(RuntimeError): pass
 
-
+## Run a game a game of tictactoe, given two players
 # first player is O, second is X
 # each player is a function that returns an (r, c) tuple
 def run_game(player1, player2):
@@ -96,6 +98,9 @@ def run_game(player1, player2):
         # symbol for current player
         s = symbols[count % len(players)]
 
+        print(brd)
+        print()
+
         mv = p(brd, s)
 
         if brd[mv] != SQUARE_EMPTY:
@@ -103,8 +108,9 @@ def run_game(player1, player2):
         else:
             brd[mv] = s
 
-        print(brd)
-        print()
+    # print final board
+    print(brd)
+    print()
 
     # print and return result
     w = brd.winner()
@@ -114,115 +120,21 @@ def run_game(player1, player2):
         print('Winner: %s' % w)
     return w
 
-# convert from linear index (0-8) to a row, column tuple
-def index_to_rc(index):
-    return (int(index / 3), index % 3)
 
-def auto_player(brd, smbl):
-    # find the first open spot
+## Simple player that moves in the first open spot on the board
+def dumb_player(brd, smbl):
     for r in range(3):
         for c in range(3):
             if brd[r,c] == SQUARE_EMPTY:
                 return (r,c)
 
 def console_player(brd, smbl):
+    # convert from linear index (0-8) to a row, column tuple
+    def index_to_rc(index):
+        return (int(index / 3), index % 3)
+
     res = int(input('Your move (0-8):'))
     return index_to_rc(res)
-
-def minimax_player(brd, smbl):
-    print('Thinking...')
-
-    other_smbl = SQUARE_X if smbl == SQUARE_O else SQUARE_O
-
-    class Node:
-        def __init__(self):
-            self.children = []
-            self.board = None
-            # if True, @children represents the result of each of our possible moves
-            self.our_turn = False
-            self.value = 0
-            self.move = None # The (r, c) position that was last taken
-
-        def height(self):
-            if len(self.children) == 0:
-                return 1
-            else:
-                return 1 + max([n.height() for n in self.children])
-
-
-        # writes a png file of the graphviz output to the specified location
-        def write_diagram_png(self, filename):
-            g = self.as_graphviz()
-            g.render(filename=filename, cleanup=True)
-
-        ## @param g The digraph object
-        # @return node name
-        def _as_graphviz(self, g, node_name=''):
-            root = g.node(node_name, label=str(self.board), shape='rect')
-
-            for index, child in enumerate(self.children):
-                child_name = node_name + str(index)
-                child._as_graphviz(g, child_name)
-                g.edge(node_name, child_name, label=str(child.move)) # TODO: label
-
-
-        # returns a graphviz.Digraph object
-        def as_graphviz(self):
-            g = gv.Digraph(self.__class__.__name__, format='png')
-            self._as_graphviz(g, '0')
-            return g
-
-
-    def subtree_for_board(brd, cur_player):
-        root = Node()
-        root.board = brd
-        root.our_turn = (cur_player == smbl) # TODO: double check
-
-        if not brd.done():
-            # add subtree for all possible moves
-            next_player = SQUARE_O if cur_player == SQUARE_X else SQUARE_O
-            for pos in root.board.open_positions():
-                sub_board = deepcopy(brd)
-                sub_board[pos] = cur_player
-                child = subtree_for_board(sub_board, next_player)
-                child.move = pos
-                root.children.append(child)
-
-            # update node's value based on child nodes
-            if root.our_turn:
-                root.value = max([c.value for c in root.children])
-            else:
-                root.value = min([c.value for c in root.children]) * 0.9
-
-
-        else:
-            # game complete, set node value based on who won
-            w = brd.winner()
-            if w == smbl:
-                # we won!
-                root.value = 1
-            elif w == other_smbl:
-                # they won :()
-                root.value = -1
-
-        return root
-
-
-    minimax = subtree_for_board(deepcopy(brd), smbl)
-    print('Tree height: %d' % minimax.height())
-    if minimax.height() <= 4:
-        print('writing minimax diagram...')
-        minimax.write_diagram_png('minimax')
-
-
-
-    # TODO: rm
-    # values = [n.value for n in minimax.children]
-    # print('values: %s' % values)
-
-    # make choice based on minimax tree
-    best_choice = max(list(minimax.children), key=lambda n: n.value)
-    return best_choice.move
 
 
 if __name__ == '__main__':
@@ -235,7 +147,10 @@ if __name__ == '__main__':
         help=
         "Request to go first")
     args = parser.parse_args()
+
+    import minimax
+
     if args.mefirst:
-        run_game(console_player, minimax_player)
+        run_game(console_player, minimax.player)
     else:
-        run_game(minimax_player, console_player)
+        run_game(minimax.player, console_player)
