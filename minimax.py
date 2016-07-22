@@ -1,4 +1,5 @@
 from copy import deepcopy
+import random
 import graphviz as gv
 from tictactoe import *
 
@@ -136,6 +137,9 @@ def player(brd, smbl):
             minimax.write_diagram_png('minimax')
 
     # make choice based on minimax tree
-    best_choice = max(list(minimax.children), key=lambda n: n.value)
-    pos, player = find_move(minimax.board, best_choice.board)
+    # find the best minimax value available, then choose randomly from all options that yield that score
+    best_value = max([n.value for n in minimax.children])
+    best_options = list(filter(lambda n: n.value == best_value, minimax.children))
+    choice = random.choice(best_options)
+    pos, player = find_move(minimax.board, choice.board)
     return pos
