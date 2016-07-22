@@ -124,7 +124,7 @@ def run_game(player1, player2, board_size=3):
         mv = p(brd, s)
 
         if brd[mv] != SQUARE_EMPTY:
-            raise InvalidMove("Square taken: %s" % mv)
+            raise InvalidMove("Square taken: %s" % str(mv))
         else:
             brd[mv] = s
 

@@ -12,9 +12,18 @@ class TestTicTacToe(unittest.TestCase):
         self.assertEqual(SQUARE_EMPTY, brd.winner())
 
     def test_winner(self):
+        # diagonal win for O
         brd = Board(np.array([
             [SQUARE_O, SQUARE_X, SQUARE_O],
             [SQUARE_X, SQUARE_O, SQUARE_X],
+            [SQUARE_O, SQUARE_X, SQUARE_EMPTY],
+        ]))
+        self.assertEqual(SQUARE_O, brd.winner())
+
+        # vertical win for O
+        brd = Board(np.array([
+            [SQUARE_O, SQUARE_X, SQUARE_X],
+            [SQUARE_O, SQUARE_O, SQUARE_X],
             [SQUARE_O, SQUARE_X, SQUARE_EMPTY],
         ]))
         self.assertEqual(SQUARE_O, brd.winner())
@@ -26,6 +35,7 @@ class TestTicTacToe(unittest.TestCase):
             [SQUARE_EMPTY, SQUARE_X, SQUARE_EMPTY],
         ]))
 
-        # minimax should choose to block O in the above board
+        # minimax should block O in the above board by choosing the upper-right
+        # square
         mv = minimax.player(brd, SQUARE_X)
         self.assertEqual((0, 2), mv)
