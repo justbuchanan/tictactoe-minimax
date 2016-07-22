@@ -129,8 +129,8 @@ def run_game(player1, player2):
 
 ## Simple player that moves in the first open spot on the board
 def dumb_player(brd, smbl):
-    for r in range(3):
-        for c in range(3):
+    for r in range(brd.size):
+        for c in range(brd.size):
             if brd[r, c] == SQUARE_EMPTY:
                 return (r, c)
 
@@ -138,7 +138,7 @@ def dumb_player(brd, smbl):
 def console_player(brd, smbl):
     # convert from linear index (0-8) to a row, column tuple
     def index_to_rc(index):
-        return (int(index / 3), index % 3)
+        return (int(index / brd.size), index % brd.size)
 
     res = int(input('Your move (0-8):'))
     return index_to_rc(res)
