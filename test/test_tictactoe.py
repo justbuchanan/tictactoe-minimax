@@ -39,3 +39,18 @@ class TestTicTacToe(unittest.TestCase):
         # square
         mv = minimax.player(brd, SQUARE_X)
         self.assertEqual((0, 2), mv)
+
+    def test_find_move(self):
+        brd0 = Board(np.array([
+            [SQUARE_O, SQUARE_O, SQUARE_EMPTY],
+            [SQUARE_X, SQUARE_EMPTY, SQUARE_EMPTY],
+            [SQUARE_EMPTY, SQUARE_X, SQUARE_EMPTY],
+        ]))
+        brd1 = Board(np.array([
+            [SQUARE_O, SQUARE_O, SQUARE_EMPTY],
+            [SQUARE_X, SQUARE_EMPTY, SQUARE_EMPTY],
+            [SQUARE_X, SQUARE_X, SQUARE_EMPTY],
+        ]))
+        pos, player = minimax.find_move(brd0, brd1)
+        self.assertEqual((2, 0), pos)
+        self.assertEqual(SQUARE_X, player)

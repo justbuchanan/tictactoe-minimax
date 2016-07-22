@@ -3,6 +3,8 @@
 from enum import Enum
 from copy import deepcopy
 import numpy as np
+import operator
+from functools import reduce
 
 ## square values
 SQUARE_EMPTY = ' '
@@ -95,6 +97,13 @@ class Board:
         row_divider = '\n' + '-' * (self.size * 2 - 1) + '\n'
         return row_divider.join(['|'.join([str(x) for x in r])
                                  for r in self.rows()])
+
+    def __eq__(self, other):
+        return np.array_equal(self._grid, other._grid)
+
+    def __hash__(self):
+        s = reduce(operator.add, self._grid.flatten())
+        return hash(s)
 
 
 ## Exception raised by run_game() when a player requests an invalid move

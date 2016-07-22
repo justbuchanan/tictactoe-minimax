@@ -3,6 +3,16 @@ import graphviz as gv
 from tictactoe import *
 
 
+# returns a ((row, col), player) indicating who and where a move was made
+# returns None if brdBefore == brdAfter
+def find_move(brdBefore, brdAfter):
+    for r in range(brdBefore.size):
+        for c in range(brdBefore.size):
+            if brdBefore[r, c] != brdAfter[r, c]:
+                return (r, c), brdAfter[r, c]
+    return None
+
+
 class Node:
     def __init__(self):
         self.children = []
@@ -10,7 +20,7 @@ class Node:
         # if True, @children represents the result of each of our possible moves
         self.our_turn = None
         self.value = 0
-        self.move = None  # The (r, c) position that was last taken
+        self.parent = None
 
     def height(self):
         if len(self.children) == 0:
@@ -22,6 +32,11 @@ class Node:
     def write_diagram_png(self, filename):
         g = self.as_graphviz()
         g.render(filename=filename, cleanup=True)
+
+    # Get the (r, c) position of the move this board represents
+    def get_move(self):
+        pos, _ = find_move(self.parent.board, self.board)
+        return pos
 
     ## @param g The digraph object
     # @return node name
@@ -35,7 +50,7 @@ class Node:
         for index, child in enumerate(self.children):
             child_name = node_name + str(index)
             child._as_graphviz(g, child_name)
-            g.edge(node_name, child_name, label=str(child.move))
+            g.edge(node_name, child_name, label=str(child.get_move()))
 
     # returns a graphviz.Digraph object
     def as_graphviz(self):
@@ -43,15 +58,32 @@ class Node:
         self._as_graphviz(g, '0')
         return g
 
+    def __hash__(self):
+        return hash(self.board) ^ hash(self.our_turn)
+
+    def __eq__(self, other):
+        return self.board == other.board and self.our_turn == other.our_turn
+
+
+_minimax_cache = {}
+
 
 ## Build a minimax tree for tictactoe board
 # @param brd The current board
 # @param player The player the minimax tree is for
 # @param cur_player who's turn it currently is
 def minimax_tree_for_board(brd, player, cur_player):
+    use_cache = True
+
     root = Node()
     root.board = brd
     root.our_turn = (cur_player == player)
+
+    # retrieve from cache
+    if use_cache:
+        if root in _minimax_cache:
+            # print('cache hit!')
+            return _minimax_cache[root]
 
     if not brd.done():
 
@@ -59,13 +91,16 @@ def minimax_tree_for_board(brd, player, cur_player):
             sub_board = deepcopy(brd)
             sub_board[pos] = cur_player
             child = minimax_tree_for_board(sub_board, player, next_player)
-            child.move = pos
             return child
 
         # add subtree for all possible moves
         next_player = other_player(cur_player)
         root.children = [create_subtree(pos)
                          for pos in root.board.open_positions()]
+
+        # update parent pointer for all child nodes
+        for c in root.children:
+            c.parent = root
 
         # update node's value based on child nodes
         if root.our_turn:
@@ -83,6 +118,9 @@ def minimax_tree_for_board(brd, player, cur_player):
         elif w == other_player(player):
             # they won :()
             root.value = -1
+
+    if use_cache:
+        _minimax_cache[root] = root
 
     return root
 
@@ -103,4 +141,4 @@ def player(brd, smbl):
 
     # make choice based on minimax tree
     best_choice = max(list(minimax.children), key=lambda n: n.value)
-    return best_choice.move
+    return best_choice.get_move()
