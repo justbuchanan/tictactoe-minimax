@@ -58,14 +58,17 @@ def minimax_tree_for_board(brd, player, cur_player):
     root.our_turn = (cur_player == player)
 
     if not brd.done():
-        # add subtree for all possible moves
-        next_player = other_player(cur_player)
-        for pos in root.board.open_positions():
+
+        def create_subtree(pos):
             sub_board = deepcopy(brd)
             sub_board[pos] = cur_player
             child = minimax_tree_for_board(sub_board, player, next_player)
             child.move = pos
-            root.children.append(child)
+            return child
+
+        # add subtree for all possible moves
+        next_player = other_player(cur_player)
+        root.children = [create_subtree(pos) for pos in root.board.open_positions()]
 
         # update node's value based on child nodes
         if root.our_turn:
