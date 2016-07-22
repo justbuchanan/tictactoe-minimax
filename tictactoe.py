@@ -9,12 +9,14 @@ SQUARE_EMPTY = ' '
 SQUARE_O = 'O'
 SQUARE_X = 'X'
 
+
 def other_player(sq):
     return SQUARE_O if sq == SQUARE_X else SQUARE_X
 
 
 class Board:
-    def __init__(self, grid=np.full((3,3), SQUARE_EMPTY, str)):
+
+    def __init__(self, grid=np.full((3, 3), SQUARE_EMPTY, str)):
         if grid.shape[0] != grid.shape[1]:
             raise RuntimeError("Grid must be a square")
 
@@ -26,10 +28,10 @@ class Board:
         return self._size
 
     def cols(self):
-        return [self._grid[:,i] for i in range(self.size)]
+        return [self._grid[:, i] for i in range(self.size)]
 
     def rows(self):
-        return [self._grid[i,:] for i in range(self.size)]
+        return [self._grid[i, :] for i in range(self.size)]
 
     def diags(self):
         ii = list(range(self.size))
@@ -43,7 +45,7 @@ class Board:
     def all_positions(self):
         for r in range(self.size):
             for c in range(self.size):
-                yield r,c
+                yield r, c
 
     def open_positions(self):
         for pos in self.all_positions():
@@ -52,6 +54,7 @@ class Board:
 
     def __getitem__(self, index):
         return self._grid[index]
+
     def __setitem__(self, index, value):
         self._grid[index] = value
 
@@ -77,10 +80,14 @@ class Board:
         return self.winner() != SQUARE_EMPTY
 
     def __str__(self):
-        return '\n-----\n'.join(['|'.join([str(x) for x in r]) for r in self.rows()])
+        return '\n-----\n'.join(['|'.join([str(x) for x in r])
+                                 for r in self.rows()])
 
 
-class InvalidMove(RuntimeError): pass
+class InvalidMove(RuntimeError):
+
+    pass
+
 
 ## Run a game a game of tictactoe, given two players
 # first player is O, second is X
@@ -125,8 +132,9 @@ def run_game(player1, player2):
 def dumb_player(brd, smbl):
     for r in range(3):
         for c in range(3):
-            if brd[r,c] == SQUARE_EMPTY:
-                return (r,c)
+            if brd[r, c] == SQUARE_EMPTY:
+                return (r, c)
+
 
 def console_player(brd, smbl):
     # convert from linear index (0-8) to a row, column tuple
@@ -139,13 +147,10 @@ def console_player(brd, smbl):
 
 if __name__ == '__main__':
     import argparse
-    parser = argparse.ArgumentParser(
-        description="Tic tac toe!")
-    parser.add_argument(
-        "--mefirst",
-        action='store_true',
-        help=
-        "Request to go first")
+    parser = argparse.ArgumentParser(description="Tic tac toe!")
+    parser.add_argument("--mefirst",
+                        action='store_true',
+                        help="Request to go first")
     args = parser.parse_args()
 
     import minimax

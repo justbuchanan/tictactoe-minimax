@@ -14,14 +14,13 @@ class Node:
         # if True, @children represents the result of each of our possible moves
         self.our_turn = None
         self.value = 0
-        self.move = None # The (r, c) position that was last taken
+        self.move = None  # The (r, c) position that was last taken
 
     def height(self):
         if len(self.children) == 0:
             return 1
         else:
             return 1 + max([n.height() for n in self.children])
-
 
     # writes a png file of the graphviz output to the specified location
     def write_diagram_png(self, filename):
@@ -32,13 +31,15 @@ class Node:
     # @return node name
     def _as_graphviz(self, g, node_name=''):
         color = 'red' if self.our_turn else 'blue'
-        root = g.node(node_name, label=str(self.board), shape='rect', color=color)
+        root = g.node(node_name,
+                      label=str(self.board),
+                      shape='rect',
+                      color=color)
 
         for index, child in enumerate(self.children):
             child_name = node_name + str(index)
             child._as_graphviz(g, child_name)
             g.edge(node_name, child_name, label=str(child.move))
-
 
     # returns a graphviz.Digraph object
     def as_graphviz(self):
@@ -84,7 +85,6 @@ def minimax_tree_for_board(brd, player, cur_player):
             root.value = -1
 
     return root
-
 
 
 ## A player that makes its moves using minimax
